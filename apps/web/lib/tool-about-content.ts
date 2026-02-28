@@ -58,7 +58,7 @@ All computation runs locally. No server dependency. Perfect for configuring back
 
 Essential for accessible design—ensure sufficient contrast between text and background. Use for design systems, theme builders, or debugging color values. P3 (display-p3) support helps when targeting wide-gamut displays. Pair with the CSS Gradient Generator for creating gradient backgrounds. All conversions run locally using the culori library; no external APIs or server calls.`,
 
-  "llm-token-counter": `The LLM Token Counter estimates token counts for GPT-4, Claude, Gemini, and other models. Uses the same tokenisation as OpenAI (tiktoken) via js-tiktoken, so counts match the API for GPT models. Claude and Gemini counts are approximate but useful for budgeting.
+  "llm-token-counter": `The LLM Token Counter estimates token counts for GPT-5, GPT-4.1, Claude 4, Gemini 2.5, and other models. Uses the same tokenisation as OpenAI (tiktoken) via js-tiktoken, so counts match the API for GPT models. Claude and Gemini counts are approximate but useful for budgeting.
 
 Tokenisation runs in a Web Worker using WASM—your text never leaves your device. No API calls. Compare multiple models in a table to see how the same text tokenises differently. Stay within context windows and plan your prompts.
 

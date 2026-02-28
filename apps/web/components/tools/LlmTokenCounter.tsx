@@ -6,7 +6,7 @@ import type { ToolProps } from "@toolhaus/tool-sdk";
 import { Card, CardContent } from "@/components/ui/card";
 
 const inputParser = parseAsString.withDefault("");
-const modelParser = parseAsString.withDefault("gpt-4o-mini");
+const modelParser = parseAsString.withDefault("gpt-4.1-mini");
 
 interface ModelInfo {
   id: string;
@@ -24,7 +24,7 @@ interface ModelPricing {
 const PROVIDER_ORDER = ["OpenAI", "Anthropic", "Google"] as const;
 
 function getProvider(id: string): string {
-  if (id.startsWith("gpt-") || id.startsWith("o1") || id.startsWith("o3")) return "OpenAI";
+  if (id.startsWith("gpt-") || id.startsWith("o1") || id.startsWith("o3") || id.startsWith("o4")) return "OpenAI";
   if (id.startsWith("claude-")) return "Anthropic";
   if (id.startsWith("gemini-")) return "Google";
   return "Other";

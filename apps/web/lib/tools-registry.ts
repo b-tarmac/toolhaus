@@ -402,7 +402,7 @@ export const tools: ToolConfig[] = [
     name: "LLM Token Counter",
     shortName: "Tokens",
     description:
-      "Count tokens for GPT-4, Claude, Gemini and more. Supports multiple models.",
+      "Count tokens for GPT-5, GPT-4.1, Claude 4, Gemini 2.5 and more. Supports multiple models.",
     category: "ai-era",
     tags: ["llm", "token", "gpt", "claude", "ai"],
     component: lazy(() =>
