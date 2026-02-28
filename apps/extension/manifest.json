@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Toolhaus",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "toolhaus@toolhaus.dev",
+      "strict_min_version": "109.0"
+    }
+  },
+  "version": "1.0.0",
+  "description": "Developer tools in your browser. Right-click any text to run a Toolhaus tool.",
+  "permissions": ["contextMenus", "storage", "activeTab"],
+  "host_permissions": ["https://toolhaus.dev/*"],
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "src/service-worker.ts",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
