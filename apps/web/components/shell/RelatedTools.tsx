@@ -2,12 +2,6 @@
 
 import Link from "next/link";
 import { getToolBySlug } from "@/lib/tools-registry";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 interface RelatedToolsProps {
   slugs: string[];
@@ -34,7 +28,7 @@ export function RelatedTools({ slugs, variant = "card" }: RelatedToolsProps) {
         <Link
           key={tool.slug}
           href={`/tools/${tool.slug}`}
-          className="block text-sm text-muted-foreground hover:text-foreground hover:underline"
+          className="block text-sm text-slate-500 hover:text-[#4f46e5] hover:underline transition-colors"
         >
           {tool.name}
         </Link>
@@ -45,11 +39,9 @@ export function RelatedTools({ slugs, variant = "card" }: RelatedToolsProps) {
   if (variant === "grid") return links;
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">Related Tools</CardTitle>
-      </CardHeader>
-      <CardContent>{links}</CardContent>
-    </Card>
+    <div className="tool-card">
+      <h3 className="text-sm font-bold text-slate-900 mb-3">Related Tools</h3>
+      {links}
+    </div>
   );
 }

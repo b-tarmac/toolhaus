@@ -104,14 +104,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   <button
                     type="button"
                     onClick={() => selectTool(tool)}
-                    className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                    className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
                       i === selectedIndex
-                        ? "bg-accent text-accent-foreground"
-                        : "hover:bg-muted/50"
+                        ? "bg-slate-100 text-slate-900"
+                        : "hover:bg-slate-50"
                     }`}
                   >
                     <span className="font-medium">{tool.name}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="inline-flex text-[11px] uppercase tracking-wider font-bold text-[#4f46e5] bg-blue-50 px-3 py-1 rounded-full shrink-0">
                       {CATEGORY_LABELS[tool.category] ?? tool.category}
                     </span>
                   </button>

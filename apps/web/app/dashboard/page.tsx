@@ -111,18 +111,18 @@ export default function DashboardPage() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="min-h-screen gradient-bg flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen gradient-bg">
         <Navbar />
-        <main className="container mx-auto max-w-2xl px-4 py-16 text-center">
-          <p className="text-muted-foreground">Sign in to access your dashboard.</p>
+        <main className="max-w-2xl mx-auto px-6 lg:px-8 py-16 text-center">
+          <p className="text-slate-500">Sign in to access your dashboard.</p>
           <Button asChild className="mt-4">
             <Link href="/sign-in">Sign In</Link>
           </Button>
@@ -134,16 +134,16 @@ export default function DashboardPage() {
 
   if (!isPro) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen gradient-bg">
         <Navbar />
-        <main className="container mx-auto max-w-2xl px-4 py-16">
-          <Card className="border-primary">
+        <main className="max-w-2xl mx-auto px-6 lg:px-8 py-16">
+          <Card className="tool-card border-2 border-[#4f46e5]/30">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Lock className="h-5 w-5" />
-                <CardTitle>Pro Dashboard</CardTitle>
+                <Lock className="h-5 w-5 text-[#9333ea]" />
+                <CardTitle className="text-slate-900">Pro Dashboard</CardTitle>
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-slate-500">
                 Upgrade to Pro to access tool history, saved snippets, and API keys.
               </p>
             </CardHeader>
@@ -160,18 +160,18 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen gradient-bg">
       <Navbar />
-      <main className="container mx-auto max-w-4xl px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Pro Dashboard</h1>
+      <main className="max-w-4xl mx-auto px-6 lg:px-8 py-8">
+        <h1 className="text-3xl font-extrabold text-slate-900 mb-6">Pro Dashboard</h1>
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
           </div>
         ) : (
           <div className="space-y-8">
-            <Card>
+            <Card className="tool-card">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-lg">
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                     )}
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-500">
                   Use your API key to access tools programmatically. Rate limit: 1,000 requests/day.
                 </p>
               </CardHeader>
@@ -222,7 +222,7 @@ export default function DashboardPage() {
                 )}
                 {apiKeys.length > 0 && !newKey && (
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-500">
                       {apiKeys.length} API key(s) created. Use the key you saved when you created it.
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                           className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-sm"
                         >
                           {k.name}
-                          <span className="text-muted-foreground">
+                          <span className="text-slate-500">
                             ({formatDate(k.createdAt)})
                           </span>
                         </span>
@@ -240,25 +240,25 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate-500">
                   Example: <code className="rounded bg-muted px-1">curl -H &quot;Authorization: Bearer YOUR_KEY&quot; -X POST https://toolhaus.dev/api/pro/tools/json-formatter -d &apos;{`{"input":"{}","options":{"mode":"format"}}`}&apos;</code>
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="tool-card">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
                   <History className="h-4 w-4" />
                   Tool History
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-500">
                   Last 50 tool runs. History is saved when you use tools while signed in.
                 </p>
               </CardHeader>
               <CardContent>
                 {history.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-slate-500">
                     No history yet. Use any tool to get started.
                   </p>
                 ) : (
@@ -275,13 +275,13 @@ export default function DashboardPage() {
                           >
                             {e.toolSlug}
                           </Link>
-                          <p className="truncate text-muted-foreground text-xs mt-0.5">
+                          <p className="truncate text-slate-500 text-xs mt-0.5">
                             {e.input.slice(0, 80)}
                             {e.input.length > 80 ? "…" : ""}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-slate-500">
                             {formatDate(e.createdAt)}
                           </span>
                           <Button
@@ -301,19 +301,19 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="tool-card">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
                   <FileText className="h-4 w-4" />
                   Saved Snippets
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-500">
                   Save tool inputs for quick access. Use the API to add snippets.
                 </p>
               </CardHeader>
               <CardContent>
                 {snippets.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-slate-500">
                     No snippets yet. Use POST /api/pro/snippets to save.
                   </p>
                 ) : (
@@ -325,20 +325,20 @@ export default function DashboardPage() {
                       >
                         <div className="min-w-0 flex-1">
                           <span className="font-medium">{s.name}</span>
-                          <span className="text-muted-foreground mx-1">·</span>
+                          <span className="text-slate-500 mx-1">·</span>
                           <Link
                             href={`/tools/${s.toolSlug}`}
-                            className="text-primary hover:underline"
+                            className="text-[#4f46e5] hover:underline"
                           >
                             {s.toolSlug}
                           </Link>
-                          <p className="truncate text-muted-foreground text-xs mt-0.5">
+                          <p className="truncate text-slate-500 text-xs mt-0.5">
                             {s.input.slice(0, 80)}
                             {s.input.length > 80 ? "…" : ""}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-slate-500">
                             {formatDate(s.createdAt)}
                           </span>
                           <Button

@@ -12,10 +12,10 @@ export function Sidebar() {
   const categories = [...new Set(tools.map((t) => t.category))];
 
   return (
-    <aside className="hidden w-56 shrink-0 border-r pr-4 lg:block">
+    <aside className="hidden w-56 shrink-0 border-r border-slate-100 pr-4 lg:block">
       <nav className="space-y-6">
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
             All Tools
           </h3>
           <ul className="space-y-0.5">
@@ -24,8 +24,10 @@ export function Sidebar() {
                 <Link
                   href={`/tools/${tool.slug}`}
                   className={cn(
-                    "block rounded-md px-2 py-1.5 text-sm hover:bg-muted",
-                    slug === tool.slug && "bg-muted font-medium"
+                    "block rounded-md px-2 py-1.5 text-sm transition-colors",
+                    slug === tool.slug
+                      ? "bg-slate-100 font-medium text-[#4f46e5]"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-[#4f46e5]"
                   )}
                 >
                   {tool.name}
@@ -35,7 +37,7 @@ export function Sidebar() {
           </ul>
         </div>
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Categories
           </h3>
           <ul className="space-y-1">
@@ -45,7 +47,7 @@ export function Sidebar() {
                 <li key={cat}>
                   <Link
                     href={`/tools/category/${cat}`}
-                    className="block rounded-md px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
+                    className="block rounded-md px-2 py-1 text-sm text-slate-500 hover:text-[#4f46e5] transition-colors"
                   >
                     {CATEGORY_LABELS[cat] ?? cat} ({catTools.length})
                   </Link>

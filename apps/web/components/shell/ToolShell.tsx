@@ -23,7 +23,7 @@ export function ToolShell({ tool, children }: ToolShellProps) {
   const isPro = (user?.publicMetadata?.plan as string) === "pro";
 
   return (
-    <div className={`min-h-screen bg-background ${isPro ? "is-pro" : ""}`}>
+    <div className={`min-h-screen gradient-bg ${isPro ? "is-pro" : ""}`}>
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="flex gap-8">
@@ -33,18 +33,18 @@ export function ToolShell({ tool, children }: ToolShellProps) {
                 <h1 className="text-2xl font-bold">{tool.name}</h1>
                 <PrivacyBadge />
                 {tool.isAiEra && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-xs text-violet-700 dark:border-violet-800 dark:bg-violet-950 dark:text-violet-300">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#9333ea]/20 bg-purple-50 px-2 py-0.5 text-xs font-bold text-[#9333ea]">
                     <Sparkles className="h-3 w-3" />
                     AI Era
                   </span>
                 )}
                 {tool.isNew && (
-                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
                     New
                   </span>
                 )}
               </div>
-              <p className="text-muted-foreground">{tool.description}</p>
+              <p className="text-slate-500">{tool.description}</p>
             </div>
 
             <Suspense fallback={<ToolSkeleton />}>{children}</Suspense>

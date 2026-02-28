@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Navbar } from "@/components/shell/Navbar";
 import { Footer } from "@/components/shell/Footer";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { getToolsByCategory, categories } from "@/lib/tools-registry";
 import { CATEGORY_LABELS, type ToolCategory } from "@toolhaus/tool-sdk";
 import type { Metadata } from "next";
@@ -25,6 +26,21 @@ export async function generateMetadata({
   };
 }
 
+const CATEGORY_BADGE_COLORS: Record<string, string> = {
+  "data-formats": "text-[#4f46e5] bg-blue-50",
+  encoding: "text-[#9333ea] bg-purple-50",
+  generators: "text-indigo-600 bg-indigo-50",
+  "date-time": "text-[#ec4899] bg-pink-50",
+  web: "text-[#4f46e5] bg-blue-50",
+  security: "text-[#9333ea] bg-purple-50",
+  text: "text-indigo-600 bg-indigo-50",
+  devops: "text-indigo-600 bg-indigo-50",
+  design: "text-[#ec4899] bg-pink-50",
+  "ai-era": "text-[#9333ea] bg-purple-50",
+  code: "text-[#ec4899] bg-pink-50",
+  math: "text-indigo-600 bg-indigo-50",
+};
+
 export default async function CategoryPage({
   params,
 }: {
@@ -35,34 +51,49 @@ export default async function CategoryPage({
 
   const catTools = getToolsByCategory(category as ToolCategory);
   const label = CATEGORY_LABELS[category] ?? category;
+  const badgeClass =
+    CATEGORY_BADGE_COLORS[category] ?? "text-slate-600 bg-slate-50";
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen gradient-bg">
       <Navbar />
-      <main className="container mx-auto max-w-4xl px-4 py-8">
-        <div className="mb-8">
+      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+        <div className="mb-16">
           <Link
             href="/tools"
-            className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+            className="text-sm font-medium text-slate-500 hover:text-[#4f46e5] hover:underline transition-colors"
           >
             ← All tools
           </Link>
-          <h1 className="mt-2 text-2xl font-bold">{label} Tools</h1>
-          <p className="mt-1 text-muted-foreground">
+          <h1 className="mt-2 text-3xl font-extrabold text-slate-900">
+            {label} Tools
+          </h1>
+          <p className="mt-1 text-slate-500 font-medium">
             {catTools.length} tools in this category
           </p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="stagger-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {catTools.map((tool) => (
             <Link
               key={tool.slug}
               href={`/tools/${tool.slug}`}
-              className="rounded-lg border p-4 transition-colors hover:bg-muted/50"
+              className="tool-card group"
             >
-              <h2 className="font-medium">{tool.name}</h2>
-              <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+              <CategoryIcon
+                category={tool.category}
+                className="mb-6 group-hover:scale-110 transition-transform"
+              />
+              <h2 className="text-lg font-bold text-slate-900 mb-3 group-hover:text-[#4f46e5] transition-colors">
+                {tool.name}
+              </h2>
+              <p className="text-sm text-slate-500 leading-relaxed mb-6 line-clamp-2">
                 {tool.description}
               </p>
+              <span
+                className={`inline-flex text-[11px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-full ${badgeClass}`}
+              >
+                {CATEGORY_LABELS[tool.category] ?? tool.category}
+              </span>
             </Link>
           ))}
         </div>
