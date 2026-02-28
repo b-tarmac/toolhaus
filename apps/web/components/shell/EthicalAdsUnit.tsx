@@ -6,7 +6,7 @@ export function EthicalAdsUnit() {
       data-ea-publisher="toolhausdev"
       data-ea-type="text"
       data-ea-style="stickybox"
-      className="ethical-ads-unit mb-6"
+      className="ethical-ads-unit mb-6 min-h-[250px]"
     />
   );
 }

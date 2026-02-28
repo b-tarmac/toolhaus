@@ -121,7 +121,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen gradient-bg">
         <Navbar />
-        <main className="max-w-2xl mx-auto px-6 lg:px-8 py-16 text-center">
+        <main id="main-content" className="max-w-2xl mx-auto px-6 lg:px-8 py-16 text-center">
           <p className="text-slate-500">Sign in to access your dashboard.</p>
           <Button asChild className="mt-4">
             <Link href="/sign-in">Sign In</Link>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen gradient-bg">
         <Navbar />
-        <main className="max-w-2xl mx-auto px-6 lg:px-8 py-16">
+        <main id="main-content" className="max-w-2xl mx-auto px-6 lg:px-8 py-16">
           <Card className="tool-card border-2 border-[#4f46e5]/30">
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -162,7 +162,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen gradient-bg">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-6 lg:px-8 py-8">
+      <main id="main-content" className="max-w-4xl mx-auto px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-extrabold text-slate-900 mb-6">Pro Dashboard</h1>
 
         {loading ? (

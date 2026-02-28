@@ -67,7 +67,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen gradient-bg">
       <Navbar />
-      <main className="max-w-4xl mx-auto px-6 lg:px-8 py-16">
+      <main id="main-content" className="max-w-4xl mx-auto px-6 lg:px-8 py-16">
         <div className="text-center">
           <h1 className="text-3xl font-extrabold text-slate-900">Pricing</h1>
           <p className="mt-2 text-slate-500 font-medium">

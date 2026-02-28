@@ -92,6 +92,23 @@ body {
   color: var(--foreground);
 }
 
+/* Skip link: visually hidden until focused (accessibility) */
+.skip-link {
+  position: fixed;
+  left: -9999px;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  color: var(--foreground);
+  border-radius: 0.5rem;
+  font-weight: 500;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
 /* Style guide utilities */
 .gradient-bg {
   background: radial-gradient(
@@ -123,4 +140,13 @@ body {
   .stagger-grid > :nth-child(even) {
     transform: translateY(0);
   }
+}
+
+/* Hide scrollbar for horizontal nav (mobile) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

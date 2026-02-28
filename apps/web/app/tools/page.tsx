@@ -27,7 +27,7 @@ export default function ToolsDirectoryPage() {
       <Navbar />
       <div className="max-w-7xl mx-auto flex gap-8 px-6 lg:px-8 py-8">
         <Sidebar />
-        <main className="min-w-0 flex-1">
+        <main id="main-content" className="min-w-0 flex-1">
           <div className="flex justify-between items-end mb-16">
             <div>
               <h1 className="text-3xl font-extrabold text-slate-900">
@@ -43,13 +43,34 @@ export default function ToolsDirectoryPage() {
             </p>
           </div>
 
+          <nav
+            className="lg:hidden mb-8 -mx-6 lg:mx-0 overflow-x-auto scrollbar-hide"
+            aria-label="Jump to category"
+          >
+            <div className="flex gap-2 px-6 lg:px-0 min-w-max">
+              {categories.map((cat) => (
+                <a
+                  key={cat}
+                  href={`#category-${cat}`}
+                  className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-[#4f46e5] hover:border-[#4f46e5]/30 transition-colors"
+                >
+                  {CATEGORY_LABELS[cat] ?? cat}
+                </a>
+              ))}
+            </div>
+          </nav>
+
           <div className="space-y-12">
             {categories.map((cat) => {
               const catTools = tools.filter((t) => t.category === cat);
               const badgeClass =
                 CATEGORY_BADGE_COLORS[cat] ?? "text-slate-600 bg-slate-50";
               return (
-                <section key={cat}>
+                <section
+                  key={cat}
+                  id={`category-${cat}`}
+                  className="scroll-mt-24"
+                >
                   <h2 className="mb-6 text-lg font-bold text-slate-900">
                     {CATEGORY_LABELS[cat] ?? cat}
                   </h2>

@@ -41,12 +41,20 @@ export default function RootLayout({
         <head>
           <link
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+            rel="preload"
+            as="style"
+          />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
             rel="stylesheet"
           />
         </head>
         <body
           className={`${plusJakartaSans.variable} ${geistMono.variable} font-sans antialiased`}
         >
+          <a href="#main-content" className="skip-link">
+            Skip to main content
+          </a>
           <noscript>
             <iframe
               src="https://www.googletagmanager.com/ns.html?id=GTM-KMZZBPLF"

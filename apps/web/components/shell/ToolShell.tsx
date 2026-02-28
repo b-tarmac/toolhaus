@@ -25,7 +25,7 @@ export function ToolShell({ tool, children }: ToolShellProps) {
   return (
     <div className={`min-h-screen gradient-bg ${isPro ? "is-pro" : ""}`}>
       <Navbar />
-      <main className="container mx-auto px-4 py-8">
+      <main id="main-content" className="container mx-auto px-4 py-8">
         <div className="flex gap-8">
           <div className="min-w-0 flex-1">
             <div className="mb-6">

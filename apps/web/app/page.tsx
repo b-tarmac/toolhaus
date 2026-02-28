@@ -26,7 +26,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen gradient-bg">
       <Navbar />
-      <main>
+      <main id="main-content">
         <section className="relative pt-24 pb-32 lg:pt-32 lg:pb-48 px-6 overflow-hidden">
           <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-center">
             <div className="w-full lg:w-2/3 lg:pr-12 text-left">

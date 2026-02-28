@@ -89,6 +89,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               onChange={(e) => setQuery(e.target.value)}
               className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
               autoFocus
+              role="combobox"
+              aria-expanded={results.length > 0}
+              aria-controls="command-palette-listbox"
+              aria-activedescendant={
+                results[selectedIndex]
+                  ? `command-palette-option-${results[selectedIndex].slug}`
+                  : undefined
+              }
+              aria-autocomplete="list"
             />
           </div>
         </DialogHeader>
@@ -98,11 +107,18 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               No tools found
             </p>
           ) : (
-            <ul className="space-y-0.5">
+            <ul
+              id="command-palette-listbox"
+              role="listbox"
+              className="space-y-0.5"
+            >
               {results.map((tool, i) => (
-                <li key={tool.slug}>
+                <li key={tool.slug} role="presentation">
                   <button
                     type="button"
+                    role="option"
+                    id={`command-palette-option-${tool.slug}`}
+                    aria-selected={i === selectedIndex}
                     onClick={() => selectTool(tool)}
                     className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
                       i === selectedIndex
