@@ -1,10 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { parseAsStringLiteral, parseAsString, useQueryState } from "nuqs";
 import type { ToolProps } from "@portfolio/tool-sdk";
 import { processJson } from "@/lib/tools/json";
 import { Button } from "@/components/ui/button";
+import {
+  useWorkspaceReportState,
+  useWorkspaceInitialState,
+} from "@/components/workspaces/WorkspaceContext";
 
 const modeParser = parseAsStringLiteral(["format", "minify", "validate", "tree"])
   .withDefault("format");
@@ -15,6 +19,16 @@ export default function JsonFormatter(props: ToolProps) {
   const [input, setInput] = useQueryState("input", inputParser);
   const [mode, setMode] = useQueryState("mode", modeParser);
   const [indent, setIndent] = useQueryState("indent", indentParser);
+
+  const initialState = useWorkspaceInitialState();
+  useEffect(() => {
+    if (!initialState) return;
+    if (typeof initialState.input === "string") setInput(initialState.input);
+    if (typeof initialState.mode === "string") setMode(initialState.mode as "format" | "minify" | "validate" | "tree");
+    if (typeof initialState.indent === "string") setIndent(initialState.indent as "2" | "4" | "tab");
+  }, [initialState]);
+
+  useWorkspaceReportState({ input, mode, indent });
 
   const result = useMemo(() => {
     if (!input.trim()) return { output: "", isValid: true as boolean };

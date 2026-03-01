@@ -76,6 +76,28 @@ export function Navbar() {
                   >
                     Go Pro
                   </Link>
+                  {(user?.publicMetadata?.plan as string) === "pro" && (
+                    <Link
+                      href="/api-docs"
+                      className="text-sm font-semibold text-slate-600 hover:text-[#4f46e5] transition-colors hidden sm:block"
+                    >
+                      API
+                    </Link>
+                  )}
+                  {(user?.publicMetadata?.plan as string) === "pro" && (
+                    <Link
+                      href="/dashboard/share-links"
+                      className="text-sm font-semibold text-slate-600 hover:text-[#4f46e5] transition-colors hidden sm:block"
+                    >
+                      Share Links
+                    </Link>
+                  )}
+                  <Link
+                    href="/dashboard/workspaces"
+                    className="text-sm font-semibold text-slate-600 hover:text-[#4f46e5] transition-colors hidden sm:block"
+                  >
+                    Workspaces
+                  </Link>
                   <Link
                     href="/dashboard"
                     className="text-sm font-semibold text-slate-600 hover:text-[#4f46e5] transition-colors hidden sm:block"

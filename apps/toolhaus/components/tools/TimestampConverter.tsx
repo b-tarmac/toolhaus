@@ -9,6 +9,8 @@ import {
 } from "@/lib/tools/timestamp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth-context";
+import { BatchToolLayout } from "./BatchToolLayout";
 
 const modeParser = parseAsStringLiteral(["to-human", "to-timestamp"]).withDefault("to-human");
 const unitParser = parseAsStringLiteral(["seconds", "milliseconds"]).withDefault("seconds");
@@ -20,11 +22,59 @@ const TIMEZONES = Intl.supportedValuesOf
   : ["UTC", "America/New_York", "Europe/London", "Asia/Tokyo"];
 
 export default function TimestampConverter(_props: ToolProps) {
+  const { user } = useAuth();
+  const isPro = user?.publicMetadata?.plan === "pro";
   const [input, setInput] = useQueryState("input", inputParser);
   const [mode, setMode] = useQueryState("mode", modeParser);
   const [unit, setUnit] = useQueryState("unit", unitParser);
   const [timezone, setTimezone] = useQueryState("tz", timezoneParser);
   const [now, setNow] = useState(Date.now());
+
+  const batchOptionsForm = (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        variant={mode === "to-human" ? "default" : "outline"}
+        size="sm"
+        onClick={() => setMode("to-human")}
+      >
+        Timestamp → Date
+      </Button>
+      <Button
+        variant={mode === "to-timestamp" ? "default" : "outline"}
+        size="sm"
+        onClick={() => setMode("to-timestamp")}
+      >
+        Date → Timestamp
+      </Button>
+      {mode === "to-human" && (
+        <>
+          <Button
+            variant={unit === "seconds" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setUnit("seconds")}
+          >
+            Seconds
+          </Button>
+          <Button
+            variant={unit === "milliseconds" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setUnit("milliseconds")}
+          >
+            Milliseconds
+          </Button>
+          <select
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            className="rounded-md border px-2 py-1 text-sm"
+          >
+            {TIMEZONES.slice(0, 50).map((tz) => (
+              <option key={tz} value={tz}>{tz}</option>
+            ))}
+          </select>
+        </>
+      )}
+    </div>
+  );
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -44,6 +94,11 @@ export default function TimestampConverter(_props: ToolProps) {
         : null;
 
   return (
+    <BatchToolLayout
+      toolSlug="timestamp-converter"
+      toolName="Timestamp Converter"
+      isPro={!!isPro}
+      singleContent={
     <div className="space-y-4">
       <Card>
         <CardContent className="pt-4">
@@ -179,5 +234,10 @@ export default function TimestampConverter(_props: ToolProps) {
         </Card>
       )}
     </div>
+      }
+      batchOptions={{ mode, unit, timezone }}
+      batchOptionsForm={batchOptionsForm}
+      batchPlaceholder={mode === "to-human" ? "One timestamp per line" : "One date string per line"}
+    />
   );
 }

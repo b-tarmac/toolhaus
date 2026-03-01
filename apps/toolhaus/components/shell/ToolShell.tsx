@@ -1,26 +1,62 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import type { ToolConfig } from "@portfolio/tool-sdk";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { PrivacyBadge } from "@/components/ui/PrivacyBadge";
-import { EthicalAdsUnit } from "./EthicalAdsUnit";
 import { RelatedTools } from "./RelatedTools";
-import { ProUpsellCard } from "./ProUpsellCard";
+import { FreeAccountNudge } from "@/components/billing/FreeAccountNudge";
+import { WorkspaceProvider } from "@/components/workspaces/WorkspaceContext";
+import { WorkspaceSaver } from "@/components/workspaces/WorkspaceSaver";
 import { ToolSeoContent } from "./ToolSeoContent";
 import { ToolSkeleton } from "./ToolSkeleton";
+import { ShareLinkManager } from "@/components/share/ShareLinkManager";
 import { Sparkles } from "lucide-react";
 
 interface ToolShellProps {
   tool: ToolConfig;
   children: React.ReactNode;
+  initialWorkspaceState?: Record<string, unknown> | null;
+  readOnly?: boolean;
+  shareLinkBanner?: React.ReactNode;
 }
 
-export function ToolShell({ tool, children }: ToolShellProps) {
+export function ToolShell({
+  tool,
+  children,
+  initialWorkspaceState: propInitialState,
+  readOnly = false,
+  shareLinkBanner,
+}: ToolShellProps) {
   const { user } = useAuth();
   const isPro = (user?.publicMetadata?.plan as string) === "pro";
+  const searchParams = useSearchParams();
+  const workspaceId = searchParams.get("workspace");
+  const [initialWorkspaceState, setInitialWorkspaceState] = useState<
+    Record<string, unknown> | null
+  >(null);
+
+  useEffect(() => {
+    if (propInitialState) return;
+    if (!workspaceId || !user) return;
+    fetch(`/api/workspaces/${workspaceId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.stateJson) {
+          try {
+            setInitialWorkspaceState(JSON.parse(data.stateJson));
+          } catch {
+            // ignore parse errors
+          }
+        }
+      })
+      .catch(() => {});
+  }, [workspaceId, user, propInitialState]);
+
+  const effectiveInitialState = propInitialState ?? initialWorkspaceState;
 
   return (
     <div className={`min-h-screen gradient-bg ${isPro ? "is-pro" : ""}`}>
@@ -47,18 +83,27 @@ export function ToolShell({ tool, children }: ToolShellProps) {
               <p className="text-slate-500">{tool.description}</p>
             </div>
 
-            <Suspense fallback={<ToolSkeleton />}>{children}</Suspense>
+            <WorkspaceProvider
+              toolSlug={tool.slug}
+              initialWorkspaceState={effectiveInitialState}
+              readOnly={readOnly}
+            >
+              {shareLinkBanner}
+              <Suspense fallback={<ToolSkeleton />}>{children}</Suspense>
 
-            <ToolSeoContent tool={tool} />
+              <WorkspaceSaver />
+              <ShareLinkManager />
+
+              <ToolSeoContent tool={tool} />
+            </WorkspaceProvider>
           </div>
 
           <aside className="hidden w-72 shrink-0 lg:block">
-            {!isPro && <EthicalAdsUnit />}
             <RelatedTools slugs={tool.relatedTools} />
-            {!isPro && <ProUpsellCard />}
           </aside>
         </div>
       </main>
+      {!isPro && <FreeAccountNudge />}
       <Footer />
     </div>
   );

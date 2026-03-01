@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseAsStringLiteral, parseAsString, useQueryState } from "nuqs";
 import type { ToolProps } from "@portfolio/tool-sdk";
 import {
@@ -10,10 +10,16 @@ import {
 } from "@/lib/tools/base64";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import {
+  useWorkspaceReportState,
+  useWorkspaceInitialState,
+} from "@/components/workspaces/WorkspaceContext";
+import { BatchToolLayout } from "./BatchToolLayout";
 
 const modeParser = parseAsStringLiteral(["encode", "decode"]).withDefault("encode");
 const variantParser = parseAsStringLiteral(["standard", "url-safe"]).withDefault("standard");
 const inputParser = parseAsString.withDefault("");
+const inputTypeParser = parseAsStringLiteral(["text", "file"]).withDefault("text");
 
 const MAX_FILE_FREE = 5 * 1024 * 1024;
 const MAX_FILE_PRO = 50 * 1024 * 1024;
@@ -26,12 +32,47 @@ export default function Base64Tool(props: ToolProps) {
   const [input, setInput] = useQueryState("input", inputParser);
   const [mode, setMode] = useQueryState("mode", modeParser);
   const [variant, setVariant] = useQueryState("variant", variantParser);
-  const [inputType, setInputType] = useQueryState(
-    "inputType",
-    parseAsStringLiteral(["text", "file"]).withDefault("text")
-  );
+  const [inputType, setInputType] = useQueryState("inputType", inputTypeParser);
   const [fileOutput, setFileOutput] = useState("");
   const [drag, setDrag] = useState(false);
+
+  const initialState = useWorkspaceInitialState();
+  useEffect(() => {
+    if (!initialState) return;
+    if (typeof initialState.input === "string") setInput(initialState.input);
+    if (typeof initialState.mode === "string") setMode(initialState.mode as "encode" | "decode");
+    if (typeof initialState.variant === "string") setVariant(initialState.variant as "standard" | "url-safe");
+    if (typeof initialState.inputType === "string") setInputType(initialState.inputType as "text" | "file");
+  }, [initialState]);
+
+  useWorkspaceReportState({ input, mode, variant, inputType });
+
+  const batchOptionsForm = (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        variant={mode === "encode" ? "default" : "outline"}
+        size="sm"
+        onClick={() => setMode("encode")}
+      >
+        Encode
+      </Button>
+      <Button
+        variant={mode === "decode" ? "default" : "outline"}
+        size="sm"
+        onClick={() => setMode("decode")}
+      >
+        Decode
+      </Button>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={variant === "url-safe"}
+          onChange={(e) => setVariant(e.target.checked ? "url-safe" : "standard")}
+        />
+        URL-safe
+      </label>
+    </div>
+  );
 
   const textOutput = useMemo(() => {
     if (mode === "encode")
@@ -53,6 +94,11 @@ export default function Base64Tool(props: ToolProps) {
   );
 
   return (
+    <BatchToolLayout
+      toolSlug="base64-tool"
+      toolName="Base64"
+      isPro={!!isPro}
+      singleContent={
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         <Button
@@ -164,5 +210,10 @@ export default function Base64Tool(props: ToolProps) {
         </div>
       )}
     </div>
+      }
+      batchOptions={{ mode, urlSafe: variant === "url-safe" }}
+      batchOptionsForm={batchOptionsForm}
+      batchPlaceholder={mode === "encode" ? "One line per string to encode" : "One line per Base64 string to decode"}
+    />
   );
 }

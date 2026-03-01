@@ -4,6 +4,8 @@ import type { NextFetchEvent, NextRequest } from "next/server";
 
 const isProtectedRoute = createRouteMatcher([
   "/api/pro/(.*)",
+  "/api/share-links",
+  "/api/share-links/(.*)",
   "/dashboard/(.*)",
 ]);
 

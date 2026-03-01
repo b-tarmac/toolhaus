@@ -3,6 +3,11 @@ import { processJson } from "@/lib/tools/json";
 import { encodeBase64, decodeBase64 } from "@/lib/tools/base64";
 import { decodeJwt } from "@/lib/tools/jwt";
 import { encodeUrl, decodeUrl } from "@/lib/tools/url";
+import { generateIds } from "@/lib/tools/uuid";
+import { hashAll } from "@/lib/tools/hash";
+import { conversions } from "@/lib/tools/case";
+import { getEncoding } from "js-tiktoken";
+import { timestampToHuman, humanToTimestamp } from "@/lib/tools/timestamp";
 import { markdownToHtml } from "@/lib/tools/markdown";
 import { convertFormat } from "@/lib/tools/data-format";
 import { generateTypeScript } from "@/lib/tools/json-to-ts";
@@ -154,7 +159,76 @@ const handlers: Record<string, ToolHandler> = {
       metadata: r.metadata,
     };
   },
+  "uuid-generator": (input, opts) => {
+    const type = (opts.type as "uuid-v4" | "ulid" | "nanoid") ?? "uuid-v4";
+    const uppercase = opts.uppercase === true || opts.uppercase === "true";
+    const ids = generateIds(type, { count: 1, uppercase });
+    return { output: ids[0] ?? "", isValid: true };
+  },
+  "hash-generator": async (input, opts) => {
+    const algorithm = (opts.algorithm as string) ?? "SHA-256";
+    const uppercase = opts.uppercase === true || opts.uppercase === "true";
+    const hashes = await hashAll(input);
+    const hash = hashes[algorithm] ?? hashes["SHA-256"] ?? Object.values(hashes)[0];
+    const output = uppercase ? hash.toUpperCase() : hash;
+    return { output, isValid: true };
+  },
+  "case-converter": (input, opts) => {
+    const conversion = (opts.conversion as string) ?? "camelCase";
+    const fn = conversions[conversion] ?? conversions.camelCase;
+    const output = fn(input);
+    return { output, isValid: true };
+  },
+  "llm-token-counter": (input, opts) => {
+    const encoding = (opts.encoding as "cl100k_base" | "o200k_base") ?? "cl100k_base";
+    const trimmed = input.trim();
+    if (!trimmed) return { output: "0", isValid: true };
+    try {
+      const enc = getEncoding(encoding);
+      const tokens = enc.encode(trimmed);
+      return { output: String(tokens.length), isValid: true };
+    } catch (e) {
+      return {
+        output: "",
+        isValid: false,
+        error: { message: (e as Error).message },
+      };
+    }
+  },
+  "timestamp-converter": (input, opts) => {
+    const mode = (opts.mode as "to-human" | "to-timestamp") ?? "to-human";
+    const unit = (opts.unit as "seconds" | "milliseconds") ?? "seconds";
+    const timezone = (opts.timezone as string) ?? "UTC";
+    const trimmed = input.trim();
+    if (!trimmed) return { output: "", isValid: false, error: { message: "Input required" } };
+    if (mode === "to-human") {
+      const r = timestampToHuman(trimmed, unit, timezone);
+      if (r.isValid && r.metadata && "iso8601" in r.metadata) {
+        return { output: String(r.metadata.iso8601), isValid: true };
+      }
+      return {
+        output: "",
+        isValid: false,
+        error: { message: r.error?.message ?? "Invalid timestamp" },
+      };
+    }
+    const r = humanToTimestamp(trimmed);
+    if (r.isValid && r.metadata && "seconds" in r.metadata) {
+      const out =
+        unit === "seconds"
+          ? String(r.metadata.seconds)
+          : String(r.metadata.milliseconds);
+      return { output: out, isValid: true };
+    }
+    return {
+      output: "",
+      isValid: false,
+      error: { message: r.error?.message ?? "Invalid date" },
+    };
+  },
 };
+
+export const API_TOOL_SLUGS = Object.keys(handlers) as string[];
 
 export function getToolHandler(slug: string): ToolHandler | null {
   return handlers[slug] ?? null;

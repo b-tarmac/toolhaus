@@ -27,18 +27,11 @@ export async function getProUserFromRequest(
   }
 
   const authHeader = req.headers.get("authorization");
-  const bearer = authHeader?.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : null;
-
-  if (bearer) {
-    const hash = hashApiKey(bearer);
-    const result = await db.execute({
-      sql: "SELECT ak.clerk_id FROM api_keys ak JOIN users u ON u.clerk_id = ak.clerk_id WHERE ak.key_hash = ? AND u.plan = 'pro'",
-      args: [hash],
-    });
-    if (result.rows.length > 0) {
-      return { ok: true, clerkId: result.rows[0].clerk_id as string };
+  if (authHeader?.startsWith("Bearer ")) {
+    const { verifyApiKey } = await import("@/lib/api/auth");
+    const auth = await verifyApiKey(req);
+    if (auth.valid && auth.clerkId) {
+      return { ok: true, clerkId: auth.clerkId };
     }
   }
 
@@ -66,5 +59,5 @@ export function hashApiKey(key: string): string {
 }
 
 export function generateApiKey(): string {
-  return `th_${randomBytes(24).toString("base64url")}`;
+  return `th_live_${randomBytes(16).toString("hex")}`;
 }

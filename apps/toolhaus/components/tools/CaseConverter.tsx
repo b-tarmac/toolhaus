@@ -1,15 +1,21 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 import type { ToolProps } from "@portfolio/tool-sdk";
 import { conversions } from "@/lib/tools/case";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-context";
+import { BatchToolLayout } from "./BatchToolLayout";
 
 const inputParser = parseAsString.withDefault("");
+const CONVERSION_NAMES = Object.keys(conversions);
 
 export default function CaseConverter(_props: ToolProps) {
+  const { user } = useAuth();
+  const isPro = user?.publicMetadata?.plan === "pro";
   const [input, setInput] = useQueryState("input", inputParser);
+  const [batchConversion, setBatchConversion] = useState("camelCase");
 
   const results = useMemo(() => {
     return Object.entries(conversions).map(([name, fn]) => ({
@@ -18,7 +24,27 @@ export default function CaseConverter(_props: ToolProps) {
     }));
   }, [input]);
 
+  const batchOptionsForm = (
+    <div className="flex flex-wrap gap-2">
+      <label className="text-sm font-medium">Conversion:</label>
+      <select
+        value={batchConversion}
+        onChange={(e) => setBatchConversion(e.target.value)}
+        className="rounded-md border px-2 py-1 text-sm"
+      >
+        {CONVERSION_NAMES.map((c) => (
+          <option key={c} value={c}>{c}</option>
+        ))}
+      </select>
+    </div>
+  );
+
   return (
+    <BatchToolLayout
+      toolSlug="case-converter"
+      toolName="Case Converter"
+      isPro={!!isPro}
+      singleContent={
     <div className="space-y-4">
       <div>
         <label className="mb-1 block text-sm font-medium">Input</label>
@@ -50,5 +76,10 @@ export default function CaseConverter(_props: ToolProps) {
         ))}
       </div>
     </div>
+      }
+      batchOptions={{ conversion: batchConversion }}
+      batchOptionsForm={batchOptionsForm}
+      batchPlaceholder="One line per string to convert"
+    />
   );
 }

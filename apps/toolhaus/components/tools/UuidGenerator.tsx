@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { parseAsStringLiteral, parseAsString, useQueryState } from "nuqs";
 import type { ToolProps } from "@portfolio/tool-sdk";
 import { generateIds, type IdType } from "@/lib/tools/uuid";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { useToolUsage } from "@/hooks/useToolUsage";
+import { LimitWarningBanner } from "@/components/billing/LimitWarningBanner";
+import { BatchToolLayout } from "./BatchToolLayout";
 
 const typeParser = parseAsStringLiteral(["uuid-v4", "ulid", "nanoid"]).withDefault("uuid-v4");
 const countParser = parseAsString.withDefault("1");
@@ -18,10 +21,21 @@ export default function UuidGenerator(props: ToolProps) {
   const { user } = useAuth();
   const isPro = user?.publicMetadata?.plan === "pro";
   const maxCount = isPro ? MAX_PRO : MAX_FREE;
+  const { checkAndRecord, checkOnly } = useToolUsage("uuid-generator");
 
   const [type, setType] = useQueryState("type", typeParser);
   const [count, setCount] = useQueryState("count", countParser);
   const [uppercase, setUppercase] = useQueryState("uppercase", uppercaseParser);
+  const [usage, setUsage] = useState<{ remaining: number; limit: number } | null>(null);
+
+  useEffect(() => {
+    if (isPro) return;
+    checkOnly().then((r) => {
+      if (r.remaining !== null && r.limit !== undefined) {
+        setUsage({ remaining: r.remaining, limit: r.limit });
+      }
+    });
+  }, [isPro, checkOnly]);
 
   const countNum = Math.min(Math.max(1, parseInt(count, 10) || 1), maxCount);
   const genIds = useCallback(
@@ -35,12 +49,52 @@ export default function UuidGenerator(props: ToolProps) {
 
   const [currentIds, setCurrentIds] = useState<string[]>([]);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
+    if (!isPro) {
+      const r = await checkAndRecord();
+      if (r.remaining !== null) setUsage({ remaining: r.remaining, limit: r.limit ?? 5 });
+      if (!r.allowed) return;
+    }
     setCurrentIds(genIds());
-  }, [genIds]);
+  }, [genIds, isPro, checkAndRecord]);
+
+  const batchOptionsForm = (
+    <div className="flex flex-wrap gap-2">
+      {(["uuid-v4", "ulid", "nanoid"] as const).map((t) => (
+        <Button
+          key={t}
+          variant={type === t ? "default" : "outline"}
+          size="sm"
+          onClick={() => setType(t)}
+        >
+          {t === "uuid-v4" ? "UUID v4" : t === "ulid" ? "ULID" : "NanoID"}
+        </Button>
+      ))}
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={uppercase === "true"}
+          onChange={(e) => setUppercase(e.target.checked ? "true" : "false")}
+        />
+        Uppercase
+      </label>
+    </div>
+  );
 
   return (
+    <BatchToolLayout
+      toolSlug="uuid-generator"
+      toolName="UUID Generator"
+      isPro={!!isPro}
+      singleContent={
     <div className="space-y-4">
+      {!isPro && usage && usage.remaining <= 1 && (
+        <LimitWarningBanner
+          remaining={usage.remaining}
+          limit={usage.limit}
+          toolName="UUID Generator"
+        />
+      )}
       <div className="flex flex-wrap gap-2">
         {(["uuid-v4", "ulid", "nanoid"] as const).map((t) => (
           <Button
@@ -89,5 +143,10 @@ export default function UuidGenerator(props: ToolProps) {
         </Button>
       </div>
     </div>
+      }
+      batchOptions={{ type, uppercase: uppercase === "true" }}
+      batchOptionsForm={batchOptionsForm}
+      batchPlaceholder="One line per UUID to generate"
+    />
   );
 }

@@ -7,11 +7,11 @@ import { Navbar } from "@/components/shell/Navbar";
 import { Footer } from "@/components/shell/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   History,
   FileText,
   Key,
+  Share2,
   Copy,
   Check,
   Loader2,
@@ -34,20 +34,11 @@ interface Snippet {
   createdAt: number;
 }
 
-interface ApiKey {
-  id: string;
-  name: string;
-  createdAt: number;
-}
-
 export default function DashboardPage() {
   const { user, isLoaded } = useAuth();
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [snippets, setSnippets] = useState<Snippet[]>([]);
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-  const [newKey, setNewKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [creatingKey, setCreatingKey] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   const isPro = (user?.publicMetadata?.plan as string) === "pro";
@@ -61,39 +52,14 @@ export default function DashboardPage() {
     Promise.all([
       fetch("/api/pro/history").then((r) => r.json()),
       fetch("/api/pro/snippets").then((r) => r.json()),
-      fetch("/api/pro/api-keys").then((r) => r.json()),
     ])
-      .then(([h, s, k]) => {
+      .then(([h, s]) => {
         if (h.entries) setHistory(h.entries);
         if (s.snippets) setSnippets(s.snippets);
-        if (k.keys) setApiKeys(k.keys);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [isLoaded, user, isPro]);
-
-  const createApiKey = async () => {
-    setCreatingKey(true);
-    try {
-      const res = await fetch("/api/pro/api-keys", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Default" }),
-      });
-      const data = await res.json();
-      if (data.key) {
-        setNewKey(data.key);
-        setApiKeys((prev) => [
-          ...prev,
-          { id: data.id, name: data.name, createdAt: data.createdAt },
-        ]);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setCreatingKey(false);
-    }
-  };
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -173,76 +139,41 @@ export default function DashboardPage() {
           <div className="space-y-8">
             <Card className="tool-card">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Key className="h-4 w-4" />
-                    API Key
-                  </CardTitle>
-                  <Button
-                    size="sm"
-                    onClick={createApiKey}
-                    disabled={creatingKey || !!newKey}
-                  >
-                    {creatingKey ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Create Key"
-                    )}
-                  </Button>
-                </div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Key className="h-4 w-4" />
+                  API Keys
+                </CardTitle>
                 <p className="text-sm text-slate-500">
-                  Use your API key to access tools programmatically. Rate limit: 1,000 requests/day.
+                  Create and manage API keys for programmatic access. Rate limit: 1,000 requests/day.
                 </p>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {newKey && (
-                  <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
-                    <p className="text-sm font-medium text-amber-600 dark:text-amber-500">
-                      Save this key now. You won&apos;t be able to see it again.
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        readOnly
-                        value={newKey}
-                        className="font-mono text-sm"
-                      />
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => copyToClipboard(newKey, "newkey")}
-                      >
-                        {copied === "newkey" ? (
-                          <Check className="h-4 w-4" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                {apiKeys.length > 0 && !newKey && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-slate-500">
-                      {apiKeys.length} API key(s) created. Use the key you saved when you created it.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {apiKeys.map((k) => (
-                        <span
-                          key={k.id}
-                          className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-sm"
-                        >
-                          {k.name}
-                          <span className="text-slate-500">
-                            ({formatDate(k.createdAt)})
-                          </span>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <p className="text-xs text-slate-500">
-                  Example: <code className="rounded bg-muted px-1">curl -H &quot;Authorization: Bearer YOUR_KEY&quot; -X POST https://toolhaus.dev/api/pro/tools/json-formatter -d &apos;{`{"input":"{}","options":{"mode":"format"}}`}&apos;</code>
+              <CardContent>
+                <Button asChild>
+                  <Link href="/dashboard/api-keys">
+                    Manage API keys
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="tool-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Share2 className="h-4 w-4" />
+                  Share Links
+                </CardTitle>
+                <p className="text-sm text-slate-500">
+                  Persistent links you can share. Anyone with the link can view the tool state.
                 </p>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline">
+                  <Link href="/dashboard/share-links">
+                    Manage share links
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
 

@@ -11,13 +11,15 @@ export async function GET() {
 
   try {
     const result = await db.execute({
-      sql: "SELECT id, name, created_at FROM api_keys WHERE clerk_id = ? ORDER BY created_at DESC",
+      sql: "SELECT id, name, key_prefix, last_used, created_at FROM api_keys WHERE clerk_id = ? ORDER BY created_at DESC",
       args: [auth.clerkId],
     });
 
     const keys = result.rows.map((row) => ({
       id: row.id,
       name: row.name,
+      keyPrefix: row.key_prefix ? `${row.key_prefix}…` : null,
+      lastUsed: row.last_used ? Number(row.last_used) * 1000 : null,
       createdAt: Number(row.created_at) * 1000,
     }));
 
@@ -55,6 +57,7 @@ export async function POST(req: Request) {
 
   const plainKey = generateApiKey();
   const keyHash = hashApiKey(plainKey);
+  const keyPrefix = plainKey.length >= 12 ? plainKey.substring(0, 12) : plainKey;
 
   try {
     await db.execute({
@@ -63,8 +66,8 @@ export async function POST(req: Request) {
     });
 
     const result = await db.execute({
-      sql: "INSERT INTO api_keys (clerk_id, key_hash, name) VALUES (?, ?, ?) RETURNING id, name, created_at",
-      args: [auth.clerkId, keyHash, name],
+      sql: "INSERT INTO api_keys (clerk_id, key_hash, key_prefix, name) VALUES (?, ?, ?, ?) RETURNING id, name, created_at",
+      args: [auth.clerkId, keyHash, keyPrefix, name],
     });
 
     const row = result.rows[0];

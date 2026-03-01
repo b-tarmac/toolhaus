@@ -1,8 +1,42 @@
 import { headers } from "next/headers";
+import { clerkClient } from "@clerk/nextjs/server";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
-import { constructWebhookEvent, activateProPlan, deactivateProPlanByCustomerId } from "@portfolio/billing";
+import {
+  constructWebhookEvent,
+  activateProPlan,
+  deactivateProPlanByCustomerId,
+} from "@portfolio/billing";
+import {
+  sendProUpgradeWelcome,
+  sendProCancellation,
+  sendPaymentFailed,
+} from "@/lib/email";
 import type Stripe from "stripe";
+
+async function getUserEmailAndName(clerkId: string): Promise<{
+  email: string;
+  firstName: string;
+} | null> {
+  try {
+    const client = await clerkClient();
+    const user = await client.users.getUser(clerkId);
+    const email = user.emailAddresses[0]?.emailAddress;
+    if (!email) return null;
+    const firstName = user.firstName || user.username || "there";
+    return { email, firstName };
+  } catch {
+    return null;
+  }
+}
+
+async function getClerkIdFromCustomerId(customerId: string): Promise<string | null> {
+  const result = await db.execute({
+    sql: "SELECT clerk_id FROM users WHERE stripe_customer_id = ?",
+    args: [customerId],
+  });
+  return (result.rows[0]?.clerk_id as string) ?? null;
+}
 
 export async function POST(req: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -43,9 +77,39 @@ export async function POST(req: Request) {
         session.customer as string,
         session.subscription as string | null
       );
+
+      const userInfo = await getUserEmailAndName(clerkUserId);
+      if (userInfo) {
+        sendProUpgradeWelcome(userInfo.email, userInfo.firstName).catch((e) =>
+          console.error("Pro upgrade email failed:", e)
+        );
+      }
     } else if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
-      await deactivateProPlanByCustomerId(db, subscription.customer as string);
+      const customerId = subscription.customer as string;
+      const clerkId = await getClerkIdFromCustomerId(customerId);
+      await deactivateProPlanByCustomerId(db, customerId);
+
+      if (clerkId) {
+        const userInfo = await getUserEmailAndName(clerkId);
+        if (userInfo) {
+          sendProCancellation(userInfo.email, userInfo.firstName).catch((e) =>
+            console.error("Pro cancellation email failed:", e)
+          );
+        }
+      }
+    } else if (event.type === "invoice.payment_failed") {
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId = invoice.customer as string;
+      const clerkId = await getClerkIdFromCustomerId(customerId);
+      if (clerkId) {
+        const userInfo = await getUserEmailAndName(clerkId);
+        if (userInfo) {
+          sendPaymentFailed(userInfo.email, userInfo.firstName).catch((e) =>
+            console.error("Payment failed email failed:", e)
+          );
+        }
+      }
     }
   } catch (err) {
     console.error("Webhook handler error:", err);

@@ -5,10 +5,14 @@ import { parseAsString, useQueryState } from "nuqs";
 import type { ToolProps } from "@portfolio/tool-sdk";
 import { decodeJwt } from "@/lib/tools/jwt";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth-context";
+import { BatchToolLayout } from "./BatchToolLayout";
 
 const tokenParser = parseAsString.withDefault("");
 
 export default function JwtDecoder(_props: ToolProps) {
+  const { user } = useAuth();
+  const isPro = user?.publicMetadata?.plan === "pro";
   const [token, setToken] = useQueryState("token", tokenParser);
 
   const result = useMemo(() => decodeJwt(token), [token]);
@@ -16,6 +20,11 @@ export default function JwtDecoder(_props: ToolProps) {
   const parts = result.metadata?.parts;
 
   return (
+    <BatchToolLayout
+      toolSlug="jwt-decoder"
+      toolName="JWT Decoder"
+      isPro={!!isPro}
+      singleContent={
     <div className="space-y-4">
       <div>
         <label className="mb-1 block text-sm font-medium">JWT token</label>
@@ -75,5 +84,8 @@ export default function JwtDecoder(_props: ToolProps) {
         </div>
       )}
     </div>
+      }
+      batchPlaceholder="One JWT per line"
+    />
   );
 }

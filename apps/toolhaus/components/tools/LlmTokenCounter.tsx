@@ -4,6 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 import type { ToolProps } from "@portfolio/tool-sdk";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth-context";
+import { useToolUsage } from "@/hooks/useToolUsage";
+import { LimitWarningBanner } from "@/components/billing/LimitWarningBanner";
+import { BatchToolLayout } from "./BatchToolLayout";
 
 const inputParser = parseAsString.withDefault("");
 const modelParser = parseAsString.withDefault("gpt-4.1-mini");
@@ -39,15 +43,29 @@ function formatContextWindow(n: number): string {
 const DEBOUNCE_MS = 150;
 
 export default function LlmTokenCounter(_props: ToolProps) {
+  const { user } = useAuth();
+  const isPro = user?.publicMetadata?.plan === "pro";
+  const { checkAndRecord, checkOnly } = useToolUsage("llm-token-counter");
+
   const [input, setInput] = useQueryState("input", inputParser);
   const [modelId, setModelId] = useQueryState("model", modelParser);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [tokenCount, setTokenCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usage, setUsage] = useState<{ remaining: number; limit: number } | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    if (isPro) return;
+    checkOnly().then((r) => {
+      if (r.remaining !== null && r.limit !== undefined) {
+        setUsage({ remaining: r.remaining, limit: r.limit });
+      }
+    });
+  }, [isPro, checkOnly]);
 
   useEffect(() => {
     fetch("/data/model-pricing.json")
@@ -107,14 +125,19 @@ export default function LlmTokenCounter(_props: ToolProps) {
     const model = models.find((m) => m.id === modelId) ?? models[0];
     const encoding = model?.encoding ?? "cl100k_base";
 
-    debounceRef.current = setTimeout(() => {
+    debounceRef.current = setTimeout(async () => {
+      if (!isPro) {
+        const r = await checkAndRecord();
+        if (r.remaining !== null) setUsage({ remaining: r.remaining, limit: r.limit ?? 5 });
+        if (!r.allowed) return;
+      }
       countTokens(input, encoding);
     }, DEBOUNCE_MS);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [input, modelId, models, countTokens]);
+  }, [input, modelId, models, countTokens, isPro, checkAndRecord]);
 
   useEffect(() => {
     return () => {
@@ -133,8 +156,41 @@ export default function LlmTokenCounter(_props: ToolProps) {
 
   const sortedGroups = PROVIDER_ORDER.filter((p) => groupedModels[p]?.length);
 
+  const batchOptionsForm = (
+    <div>
+      <label className="mb-1 block text-sm font-medium">Encoding</label>
+      <select
+        value={modelId}
+        onChange={(e) => setModelId(e.target.value)}
+        className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+      >
+        {sortedGroups.map((provider) => (
+          <optgroup key={provider} label={provider}>
+            {groupedModels[provider]?.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.id} ({formatContextWindow(m.contextWindow)} ctx)
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+    </div>
+  );
+
   return (
+    <BatchToolLayout
+      toolSlug="llm-token-counter"
+      toolName="LLM Token Counter"
+      isPro={!!isPro}
+      singleContent={
     <div className="space-y-4">
+      {!isPro && usage && usage.remaining <= 1 && (
+        <LimitWarningBanner
+          remaining={usage.remaining}
+          limit={usage.limit}
+          toolName="LLM Token Counter"
+        />
+      )}
       <div>
         <label className="mb-1 block text-sm font-medium">Model</label>
         <select
@@ -249,5 +305,10 @@ export default function LlmTokenCounter(_props: ToolProps) {
         </Card>
       )}
     </div>
+      }
+      batchOptions={{ encoding: selectedModel?.encoding ?? "cl100k_base" }}
+      batchOptionsForm={batchOptionsForm}
+      batchPlaceholder="One text per line to count tokens"
+    />
   );
 }

@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { parseAsStringLiteral, parseAsString, useQueryState } from "nuqs";
 import type { ToolProps } from "@portfolio/tool-sdk";
 import { hashAll, hashFile } from "@/lib/tools/hash";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { useToolUsage } from "@/hooks/useToolUsage";
+import { LimitWarningBanner } from "@/components/billing/LimitWarningBanner";
+import { BatchToolLayout } from "./BatchToolLayout";
 
 const inputTypeParser = parseAsStringLiteral(["text", "file"]).withDefault("text");
 const uppercaseParser = parseAsStringLiteral(["true", "false"]).withDefault("false");
@@ -18,15 +21,31 @@ export default function HashGenerator(_props: ToolProps) {
   const { user } = useAuth();
   const isPro = user?.publicMetadata?.plan === "pro";
   const maxFile = isPro ? MAX_FILE_PRO : MAX_FILE_FREE;
+  const { checkAndRecord, checkOnly } = useToolUsage("hash-generator");
 
   const [input, setInput] = useQueryState("input", inputParser);
   const [inputType, setInputType] = useQueryState("inputType", inputTypeParser);
   const [uppercase, setUppercase] = useQueryState("uppercase", uppercaseParser);
   const [hashes, setHashes] = useState<Record<string, string> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [usage, setUsage] = useState<{ remaining: number; limit: number } | null>(null);
+
+  useEffect(() => {
+    if (isPro) return;
+    checkOnly().then((r) => {
+      if (r.remaining !== null && r.limit !== undefined) {
+        setUsage({ remaining: r.remaining, limit: r.limit });
+      }
+    });
+  }, [isPro, checkOnly]);
 
   const computeText = useCallback(async () => {
     if (!input.trim()) return;
+    if (!isPro) {
+      const r = await checkAndRecord();
+      if (r.remaining !== null) setUsage({ remaining: r.remaining, limit: r.limit ?? 5 });
+      if (!r.allowed) return;
+    }
     setLoading(true);
     try {
       const h = await hashAll(input);
@@ -40,11 +59,16 @@ export default function HashGenerator(_props: ToolProps) {
     } finally {
       setLoading(false);
     }
-  }, [input, uppercase]);
+  }, [input, uppercase, isPro, checkAndRecord]);
 
   const handleFile = useCallback(
     async (file: File) => {
       if (file.size > maxFile) return;
+      if (!isPro) {
+        const r = await checkAndRecord();
+        if (r.remaining !== null) setUsage({ remaining: r.remaining, limit: r.limit ?? 5 });
+        if (!r.allowed) return;
+      }
       setLoading(true);
       try {
         const h = await hashFile(file);
@@ -59,11 +83,47 @@ export default function HashGenerator(_props: ToolProps) {
         setLoading(false);
       }
     },
-    [maxFile, uppercase]
+    [maxFile, uppercase, isPro, checkAndRecord]
+  );
+
+  const [batchAlgo, setBatchAlgo] = useState("SHA-256");
+  const batchOptionsForm = (
+    <div className="flex flex-wrap items-center gap-2">
+      <label className="text-sm font-medium">Algorithm:</label>
+      <select
+        value={batchAlgo}
+        onChange={(e) => setBatchAlgo(e.target.value)}
+        className="rounded-md border px-2 py-1 text-sm"
+      >
+        {["MD5", "SHA-1", "SHA-256", "SHA-384", "SHA-512"].map((a) => (
+          <option key={a} value={a}>{a}</option>
+        ))}
+      </select>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={uppercase === "true"}
+          onChange={(e) => setUppercase(e.target.checked ? "true" : "false")}
+        />
+        Uppercase
+      </label>
+    </div>
   );
 
   return (
+    <BatchToolLayout
+      toolSlug="hash-generator"
+      toolName="Hash Generator"
+      isPro={!!isPro}
+      singleContent={
     <div className="space-y-4">
+      {!isPro && usage && usage.remaining <= 1 && (
+        <LimitWarningBanner
+          remaining={usage.remaining}
+          limit={usage.limit}
+          toolName="Hash Generator"
+        />
+      )}
       <div className="flex flex-wrap gap-2">
         <Button
           variant={inputType === "text" ? "default" : "outline"}
@@ -150,5 +210,10 @@ export default function HashGenerator(_props: ToolProps) {
         </div>
       )}
     </div>
+      }
+      batchOptions={{ algorithm: batchAlgo, uppercase: uppercase === "true" }}
+      batchOptionsForm={batchOptionsForm}
+      batchPlaceholder="One line per string to hash"
+    />
   );
 }

@@ -55,11 +55,13 @@ export default async function ToolPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
-      <ToolShell tool={tool}>
-        <Suspense fallback={<ToolSkeleton />}>
-          <ToolComponent />
-        </Suspense>
-      </ToolShell>
+      <Suspense fallback={<ToolSkeleton />}>
+        <ToolShell tool={tool}>
+          <Suspense fallback={<ToolSkeleton />}>
+            <ToolComponent />
+          </Suspense>
+        </ToolShell>
+      </Suspense>
     </>
   );
 }

@@ -78,10 +78,6 @@ export default function RootLayout({
             }}
           />
           <NuqsAdapter>{children}</NuqsAdapter>
-          <Script
-            src="https://media.ethicalads.io/media/client/ethicalads.min.js"
-            strategy="lazyOnload"
-          />
           {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
             <Script
               defer
