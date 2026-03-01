@@ -10,7 +10,7 @@
     "package": "npm run build && cd dist && zip -r ../toolhaus-extension.zip . -x '*.map' && cd .."
   },
   "dependencies": {
-    "@toolhaus/tool-sdk": "*",
+    "@portfolio/tool-sdk": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "webextension-polyfill": "^0.12.0"

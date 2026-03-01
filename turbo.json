@@ -6,6 +6,13 @@
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "inputs": ["$TURBO_DEFAULT$", "package.json"]
     },
+    "@portfolio/tool-sdk#build": { "outputs": [] },
+    "@portfolio/auth#build": { "outputs": [] },
+    "@portfolio/billing#build": { "outputs": [] },
+    "@portfolio/database#build": { "outputs": [] },
+    "@portfolio/email#build": { "outputs": [] },
+    "@portfolio/seo#build": { "outputs": [] },
+    "@portfolio/usage#build": { "outputs": [] },
     "dev": {
       "cache": false,
       "persistent": true

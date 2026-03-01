@@ -1,4 +1,4 @@
-import { CONTEXT_MENU_TOOLS } from "@toolhaus/tool-sdk";
+import { CONTEXT_MENU_TOOLS } from "@portfolio/tool-sdk";
 import { browser } from "./lib/browser";
 
 const TOOLHAUS_BASE = "https://toolhaus.dev";

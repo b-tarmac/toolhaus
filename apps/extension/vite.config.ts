@@ -16,7 +16,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@tools": path.resolve(__dirname, "../web/lib/tools"),
+      "@tools": path.resolve(__dirname, "../toolhaus/lib/tools"),
     },
   },
 });

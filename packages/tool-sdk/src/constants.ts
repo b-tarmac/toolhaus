@@ -38,3 +38,20 @@ export const CATEGORY_LABELS: Record<string, string> = {
   code: "Code",
   math: "Math",
 };
+
+/** EasyBiscuit tool categories */
+export const EASYBISCUIT_CATEGORIES = [
+  "business",
+  "calculators",
+  "pdf",
+  "image",
+  "writing",
+] as const;
+
+export const EASYBISCUIT_CATEGORY_LABELS: Record<string, string> = {
+  business: "Business",
+  calculators: "Calculators",
+  pdf: "PDF",
+  image: "Image",
+  writing: "Writing",
+};
